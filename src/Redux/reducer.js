@@ -4,16 +4,32 @@ import {
   FETCH_PRODUCTS_REQUEST,
   FETCH_PRODUCTS_SUCCESS,
   DELETE_PRODUCT,
-  EDIT_PRODUCT
+  EDIT_PRODUCT,
+  CALCULATE_BILL,
+  COMPLETE_TRANSACTION,
+  COMPLETE_TRANSACTION_REQUEST,
+  TRANSACTION_SUCCESS,
+  TRANSACTION_FAILURE,
+  FETCH_ALL_TRANSACTIONS_REQUEST,
+  FETCH_ALL_TRANSACTIONS_SUCCESS,
+  FETCH_ALL_TRANSACTIONS_FAILURE
 } from "./Actions/actionTypes";
-import { useDispatch } from "react-redux";
 
 const initialState = {
   allProducts: [],
+  allTransactions: [],
   addedProducts: [],
-  currentProduct: { cName: "", cNumber: "", pName: "", quantity: 1, price: "" },
+  currentProduct: {
+    cName: "",
+    cNumber: "",
+    pName: "",
+    quantity: 1,
+    price: "",
+    pId: ""
+  },
   loading: false,
-  error: ""
+  error: "",
+  billAmount: 0
 };
 
 const Reducer = (state = initialState, action) => {
@@ -34,6 +50,71 @@ const Reducer = (state = initialState, action) => {
       return {
         ...state,
         currentProduct: action.payload
+      };
+
+    case CALCULATE_BILL:
+      let sum = 0;
+      const newArray = state.addedProducts.map(prod => {
+        sum = sum + prod.quantity * prod.price;
+        return 0;
+      });
+
+      return {
+        ...state,
+        billAmount: sum
+      };
+
+    case COMPLETE_TRANSACTION_REQUEST:
+      return {
+        ...state,
+        loading: true
+      };
+
+    case TRANSACTION_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        billAmount: 0,
+        addedProducts: [],
+        error: "",
+        currentProduct: {
+          cName: "",
+          cNumber: "",
+          pName: "",
+          quantity: 1,
+          price: "",
+          pId: ""
+        }
+      };
+
+    case TRANSACTION_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: " Transaction Failed",
+        currentProduct: {
+          cName: "",
+          cNumber: "",
+          pName: "",
+          quantity: 1,
+          price: "",
+          pId: ""
+        }
+      };
+    case COMPLETE_TRANSACTION:
+      return {
+        ...state,
+        billAmount: 0,
+        addedProducts: [],
+        error: "",
+        currentProduct: {
+          cName: "",
+          cNumber: "",
+          pName: "",
+          quantity: 1,
+          price: "",
+          pId: ""
+        }
       };
     case FETCH_PRODUCTS_REQUEST:
       return {
@@ -57,6 +138,17 @@ const Reducer = (state = initialState, action) => {
         allProducts: []
       };
 
+    case FETCH_ALL_TRANSACTIONS_REQUEST:
+      return {
+        ...state,
+        loading: true
+      };
+    case FETCH_ALL_TRANSACTIONS_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        allTransactions: action.payload
+      };
     default:
       return state;
   }

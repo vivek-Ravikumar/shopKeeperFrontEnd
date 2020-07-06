@@ -3,7 +3,11 @@ import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
 import Button from "@material-ui/core/Button";
-import { addProduct, fetchAllProducts } from "../Redux/Actions/actions";
+import {
+  addProduct,
+  fetchAllProducts,
+  calculateBill
+} from "../Redux/Actions/actions";
 import { connect } from "react-redux";
 
 const useStyles = makeStyles(theme => ({
@@ -19,7 +23,9 @@ function InputForm({
   allProducts,
   fetchAllProducts,
   addProduct,
-  currentProduct
+  currentProduct,
+  addedProducts,
+  calculateBill
 }) {
   const classes = useStyles();
 
@@ -27,33 +33,55 @@ function InputForm({
 
   useEffect(() => {
     fetchAllProducts();
-    setPurchaseData(currentProduct);
-  }, [currentProduct]);
+    if (currentProduct.pName !== "") {
+      setPurchaseData(currentProduct);
+    } else {
+      setPurchaseData({
+        cName: "",
+        cNumber: "",
+        pName: "",
+        quantity: 1,
+        price: "",
+        pId: ""
+      });
+    }
+  }, [currentProduct, fetchAllProducts]);
 
   const handleChange = event => {
-    // if (event.target.id === "pName") {
-    //   setPurchaseData({
-    //     ...purchaseData,
-    //     [event.target.id]: event.target.value,
-    //     price: purchaseData[event.target.key].price
-    //   });
-    // } else {
-    setPurchaseData({
-      ...purchaseData,
-      [event.target.name]: event.target.value
-    });
-    // }
+    if (event.target.name === "pName") {
+      const filteredArray = allProducts.filter(
+        prod => prod.pName === event.target.value
+      );
+      setPurchaseData({
+        ...purchaseData,
+        [event.target.name]: event.target.value,
+        price: filteredArray[0].price,
+        pId: filteredArray[0]._id
+      });
+    } else {
+      setPurchaseData({
+        ...purchaseData,
+        [event.target.name]: event.target.value
+      });
+    }
   };
 
   const addFuntion = () => {
-    addProduct(purchaseData);
-    setPurchaseData({
-      cName: "",
-      cNumber: "",
-      pName: "",
-      quantity: 1,
-      price: ""
-    });
+    const pArray = addedProducts.map(prod => prod.pName);
+    if (pArray.includes(purchaseData.pName)) {
+      alert(`already Added ${purchaseData.pName}`);
+    } else {
+      addProduct(purchaseData);
+      calculateBill();
+      setPurchaseData(prevState => {
+        return {
+          ...prevState,
+          pName: "",
+          quantity: 1,
+          price: ""
+        };
+      });
+    }
   };
   return (
     <form className={classes.root} noValidate autoComplete="off">
@@ -88,13 +116,13 @@ function InputForm({
         ))}
       </TextField>{" "}
       <br />
-      <TextField
+      {/* <TextField
         id="price"
         name="price"
         label="Price"
         onChange={handleChange}
         value={purchaseData.price}
-      />{" "}
+      />{" "} */}
       <br />
       <TextField
         id="quantity"
@@ -120,14 +148,16 @@ function InputForm({
 const mapStateToProps = state => {
   return {
     allProducts: state.allProducts,
-    currentProduct: state.currentProduct
+    currentProduct: state.currentProduct,
+    addedProducts: state.addedProducts
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     addProduct: addedProduct => dispatch(addProduct(addedProduct)),
-    fetchAllProducts: () => dispatch(fetchAllProducts())
+    fetchAllProducts: () => dispatch(fetchAllProducts()),
+    calculateBill: () => dispatch(calculateBill())
   };
 };
 export default connect(

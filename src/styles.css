@@ -5,4 +5,9 @@
 
 i {
   padding: 2%;
+  cursor: pointer;
+}
+
+.header {
+  color: red;
 }
